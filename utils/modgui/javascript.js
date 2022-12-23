@@ -33,14 +33,14 @@ function(event, funcs) {
         var src = document.createElement('script');
         src.setAttribute('async', true);
         src.setAttribute('src',
-                         '/effect/file/custom?filename=module.js&uri='+escape("urn:distrho:examples:imguisimplegain")+'&r='+VERSION
+                         '/resources/module.js?uri='+escape("urn:distrho:examples:imguisimplegain")+'&r='+VERSION
                          // funcs.get_custom_resource_filename('module.js')
                          );
         src.setAttribute('type', 'text/javascript');
         src.onload = function() {
             Module_mod_wasm_example({
                 locateFile: function(path, prefix) {
-                    return '/effect/file/custom?filename='+path+'&uri='+escape("urn:distrho:examples:imguisimplegain")+'&r='+VERSION
+                    return '/resources/'+path+'?uri='+escape("urn:distrho:examples:imguisimplegain")+'&r='+VERSION
                     // return funcs.get_custom_resource_filename(path);
                 },
                 postRun: function(module) {
