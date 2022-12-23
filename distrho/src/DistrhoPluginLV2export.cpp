@@ -331,7 +331,7 @@ void lv2_generate_ttl(const char* const basename)
         }
 #endif
 
-        manifestFile << manifestString << std::endl;
+        manifestFile << manifestString;
         manifestFile.close();
         std::cout << " done!" << std::endl;
     }
@@ -1209,10 +1209,35 @@ void lv2_generate_ttl(const char* const basename)
             }
         }
 
-        pluginFile << pluginString << std::endl;
+        pluginFile << pluginString;
         pluginFile.close();
         std::cout << " done!" << std::endl;
     }
+
+#if DISTRHO_PLUGIN_USES_MODGUI
+    {
+        std::cout << "Writing modgui.ttl..."; std::cout.flush();
+        std::fstream modguiFile("modgui.ttl", std::ios::out);
+
+        String modguiString;
+        modguiString += "@prefix modgui: <http://moddevices.com/ns/modgui#> .\n";
+        modguiString += "\n";
+
+        modguiString += "<" DISTRHO_PLUGIN_URI ">\n";
+        modguiString += "    modgui:gui [\n";
+        modguiString += "        modgui:resourcesDirectory <modgui> ;\n";
+        modguiString += "        modgui:iconTemplate <modgui/icon.html> ;\n";
+        modguiString += "        modgui:javascript <modgui/javascript.js> ;\n";
+        modguiString += "        modgui:stylesheet <modgui/stylesheet.css> ;\n";
+        modguiString += "        modgui:screenshot <modgui/screenshot.png> ;\n";
+        modguiString += "        modgui:thumbnail <modgui/thumbnail.png> ;\n";
+        modguiString += "    ] .\n";
+
+        modguiFile << modguiString;
+        modguiFile.close();
+        std::cout << " done!" << std::endl;
+    }
+#endif
 
     // ---------------------------------------------
 
@@ -1371,7 +1396,7 @@ void lv2_generate_ttl(const char* const basename)
             presetsString += presetString;
         }
 
-        presetsFile << presetsString << std::endl;
+        presetsFile << presetsString;
         presetsFile.close();
         std::cout << " done!" << std::endl;
     }

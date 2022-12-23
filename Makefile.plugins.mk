@@ -8,9 +8,17 @@
 
 
 ifeq ($(DPF_PATH),)
-ifeq (,$(wildcard ../../Makefile.base.mk))
+ifneq (,$(wildcard dpf/Makefile.base.mk))
+BASE_PATH=.
+DPF_PATH=dpf
+else ifneq (,$(wildcard ../dpf/Makefile.base.mk))
+BASE_PATH=..
+DPF_PATH=../dpf
+else ifneq (,$(wildcard ../../dpf/Makefile.base.mk))
+BASE_PATH=../..
 DPF_PATH=../../dpf
 else
+BASE_PATH=../..
 DPF_PATH=../..
 endif
 endif
@@ -21,12 +29,12 @@ include $(DPF_PATH)/Makefile.base.mk
 # Basic setup
 
 ifeq ($(DPF_TARGET_DIR),)
-TARGET_DIR = ../../bin
+TARGET_DIR = $(BASE_PATH)/bin
 else
 TARGET_DIR = $(DPF_TARGET_DIR)
 endif
 ifeq ($(DPF_BUILD_DIR),)
-BUILD_DIR = ../../build/$(NAME)
+BUILD_DIR = $(BASE_PATH)/build/$(NAME)
 else
 BUILD_DIR = $(DPF_BUILD_DIR)
 endif
@@ -513,6 +521,43 @@ $(lv2_ui): $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMain_LV2.cpp.o $(DGL_LIB)
 	-@mkdir -p $(shell dirname $@)
 	@echo "Creating LV2 plugin UI for $(NAME)"
 	$(SILENT)$(CXX) $^ $(BUILD_CXX_FLAGS) $(LINK_FLAGS) $(EXTRA_LIBS) $(EXTRA_UI_LIBS) $(DGL_LIBS) $(SHARED) $(SYMBOLS_LV2UI) -o $@
+
+# ---------------------------------------------------------------------------------------------------------------------
+# LV2 modgui
+
+JS_SAFE_VAR = $(shell echo $(1) | tr - _)
+
+$(TARGET_DIR)/$(NAME).lv2/modgui/module.js: $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMain_LV2.cpp.o $(DGL_LIB)
+	-@mkdir -p $(shell dirname $@)
+	@echo "Creating LV2 plugin modgui for $(NAME)"
+	$(SILENT)$(CXX) $^ $(LINK_FLAGS) \
+		-sALLOW_TABLE_GROWTH -sMODULARIZE=1 -sMAIN_MODULE=2 -sDISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=0 \
+		-sEXPORTED_FUNCTIONS="['_malloc','_free','_modgui_init','_modgui_param','_modgui_cleanup']" \
+		-sEXPORTED_RUNTIME_METHODS=['addFunction','lengthBytesUTF8','stringToUTF8'] \
+		-sEXPORT_NAME="Module_$(call JS_SAFE_VAR,$(NAME))" \
+		$(EXTRA_LIBS) $(DGL_LIBS) -o $@
+
+$(TARGET_DIR)/$(NAME).lv2/modgui/icon.html: $(DPF_PATH)/utils/modgui/icon.html
+	-@mkdir -p $(shell dirname $@)
+	cp $< $@
+
+$(TARGET_DIR)/$(NAME).lv2/modgui/javascript.js: $(DPF_PATH)/utils/modgui/javascript.js
+	-@mkdir -p $(shell dirname $@)
+	cp $< $@
+
+$(TARGET_DIR)/$(NAME).lv2/modgui/stylesheet.css: $(DPF_PATH)/utils/modgui/stylesheet.css
+	-@mkdir -p $(shell dirname $@)
+	cp $< $@
+
+modgui: $(TARGET_DIR)/$(NAME).lv2/modgui/icon.html $(TARGET_DIR)/$(NAME).lv2/modgui/javascript.js $(TARGET_DIR)/$(NAME).lv2/modgui/stylesheet.css
+	$(MAKE) $(TARGET_DIR)/$(NAME).lv2/modgui/module.js HAVE_OPENGL=true USE_GLES2=true \
+		AR=emar \
+		CC=emcc \
+		CXX=em++ \
+		CFLAGS="-D__MOD_DEVICES__" \
+		CPPFLAGS= \
+		CXXFLAGS="-D__MOD_DEVICES__ -I../dpf-widgets/generic -I../dpf-widgets/opengl" \
+		LDFLAGS=
 
 # ---------------------------------------------------------------------------------------------------------------------
 # VST2
