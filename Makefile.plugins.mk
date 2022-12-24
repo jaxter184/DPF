@@ -535,6 +535,7 @@ endif
 endif
 
 MODGUI_IGNORED_FLAGS  = -fno-gnu-unique
+MODGUI_IGNORED_FLAGS += -fprefetch-loop-arrays
 MODGUI_IGNORED_FLAGS += -mfpmath=sse
 MODGUI_IGNORED_FLAGS += -mtune=generic
 MODGUI_IGNORED_FLAGS += -I$(MOD_WORKDIR)/modduo-static/staging/usr/include
