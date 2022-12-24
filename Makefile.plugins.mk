@@ -525,6 +525,15 @@ $(lv2_ui): $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMain_LV2.cpp.o $(DGL_LIB)
 # ---------------------------------------------------------------------------------------------------------------------
 # LV2 modgui
 
+ifeq ($(MODGUI_BUILD),true)
+ifeq ($(PLUGIN_CLASS),)
+$(error PLUGIN_CLASS undefined)
+endif
+ifeq ($(PLUGIN_URI),)
+$(error PLUGIN_URI undefined)
+endif
+endif
+
 MODGUI_IGNORED_FLAGS  = -fno-gnu-unique
 MODGUI_IGNORED_FLAGS += -mfpmath=sse
 MODGUI_IGNORED_FLAGS += -mtune=generic
@@ -544,32 +553,27 @@ ifneq ($(DEBUG),true)
 MODGUI_LDFLAGS += -Wl,--gc-sections
 endif
 
-JS_SAFE_VAR = $(shell echo $(1) | tr - _)
+MODGUI_RESOURCES  = $(TARGET_DIR)/$(NAME).lv2/modgui/icon.html
+MODGUI_RESOURCES += $(TARGET_DIR)/$(NAME).lv2/modgui/javascript.js
+MODGUI_RESOURCES += $(TARGET_DIR)/$(NAME).lv2/modgui/stylesheet.css
 
 $(TARGET_DIR)/$(NAME).lv2/modgui/module.js: $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMain_LV2.cpp.o $(DGL_LIB)
 	-@mkdir -p $(shell dirname $@)
 	@echo "Creating LV2 plugin modgui for $(NAME)"
-	$(SILENT)$(CXX) $^ $(LINK_FLAGS) \
+	$(SILENT)$(CXX) $^ $(LINK_FLAGS) $(EXTRA_LIBS) $(DGL_LIBS) \
 		-sALLOW_TABLE_GROWTH -sMODULARIZE=1 -sMAIN_MODULE=2 -sDISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=0 \
 		-sEXPORTED_FUNCTIONS="['_malloc','_free','_modgui_init','_modgui_param','_modgui_cleanup']" \
 		-sEXPORTED_RUNTIME_METHODS=['addFunction','lengthBytesUTF8','stringToUTF8'] \
-		-sEXPORT_NAME="Module_$(call JS_SAFE_VAR,$(NAME))" \
-		$(EXTRA_LIBS) $(DGL_LIBS) -o $@
+		-sEXPORT_NAME="Module_$(PLUGIN_CLASS)" \
+		-o $@
 
-$(TARGET_DIR)/$(NAME).lv2/modgui/icon.html: $(DPF_PATH)/utils/modgui/icon.html
+$(TARGET_DIR)/$(NAME).lv2/modgui/%: $(DPF_PATH)/utils/modgui/%
 	-@mkdir -p $(shell dirname $@)
-	cp $< $@
+	sed -e 's|@PLUGIN_CLASS@|$(PLUGIN_CLASS)|g' -e 's|@PLUGIN_URI@|$(PLUGIN_URI)|g' $< > $@
 
-$(TARGET_DIR)/$(NAME).lv2/modgui/javascript.js: $(DPF_PATH)/utils/modgui/javascript.js
-	-@mkdir -p $(shell dirname $@)
-	cp $< $@
-
-$(TARGET_DIR)/$(NAME).lv2/modgui/stylesheet.css: $(DPF_PATH)/utils/modgui/stylesheet.css
-	-@mkdir -p $(shell dirname $@)
-	cp $< $@
-
-modgui: $(TARGET_DIR)/$(NAME).lv2/modgui/icon.html $(TARGET_DIR)/$(NAME).lv2/modgui/javascript.js $(TARGET_DIR)/$(NAME).lv2/modgui/stylesheet.css
-	$(MAKE) $(TARGET_DIR)/$(NAME).lv2/modgui/module.js EXE_WRAPPER= HAVE_OPENGL=true FILE_BROWSER_DISABLED=true PKG_CONFIG=false USE_GLES2=true \
+modgui: $(MODGUI_RESOURCES)
+	$(MAKE) $(TARGET_DIR)/$(NAME).lv2/modgui/module.js EXE_WRAPPER= HAVE_OPENGL=true FILE_BROWSER_DISABLED=true MODGUI_BUILD=true PKG_CONFIG=false USE_GLES2=true \
+		PLUGIN_CLASS=$(PLUGIN_CLASS) \
 		AR=emar \
 		CC=emcc \
 		CXX=em++ \

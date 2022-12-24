@@ -1,4 +1,4 @@
-.dpf-wasm-example.mod-pedal {
+.@PLUGIN_CLASS@.mod-pedal {
     padding: 0;
     margin: 0;
     width: 540px;
@@ -6,11 +6,7 @@
     background: #0e0e0e;
 }
 
-.dpf-wasm-example.mod-pedal .canvas_file_open {
-    display: none;
-}
-
-.dpf-wasm-example.mod-pedal .canvas_wrapper {
+.@PLUGIN_CLASS@.mod-pedal .canvas_wrapper {
     z-index: 23;
     --device-pixel-ratio: 1;
     /*image-rendering: pixelated;*/
@@ -24,16 +20,20 @@
     left: 20px;
 }
 
-.dpf-wasm-example.mod-pedal .mod-pedal-input,
-.dpf-wasm-example.mod-pedal .mod-pedal-output {
+.@PLUGIN_CLASS@.mod-pedal .mod-pedal-input,
+.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output {
     top: 50px;
 }
 
-.dpf-wasm-example.mod-pedal .mod-pedal-output .mod-audio-input,
-.dpf-wasm-example.mod-pedal .mod-pedal-output .mod-audio-output,
-.dpf-wasm-example.mod-pedal .mod-pedal-output .mod-midi-input,
-.dpf-wasm-example.mod-pedal .mod-pedal-output .mod-midi-output,
-.dpf-wasm-example.mod-pedal .mod-pedal-output .mod-cv-input,
-.dpf-wasm-example.mod-pedal .mod-pedal-output .mod-cv-output {
+.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-audio-input,
+.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-audio-output,
+.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-midi-input,
+.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-midi-output,
+.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-cv-input,
+.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-cv-output {
     margin-bottom: 26px;
+}
+
+.@PLUGIN_CLASS@.mod-pedal .jack-disconnected {
+    top: 0px !important;
 }

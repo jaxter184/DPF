@@ -33,19 +33,18 @@ function(event, funcs) {
         var src = document.createElement('script');
         src.setAttribute('async', true);
         src.setAttribute('src',
-                         '/resources/module.js?uri='+escape("urn:distrho:examples:imguisimplegain")+'&r='+VERSION
+                         '/resources/module.js?uri='+escape("@PLUGIN_URI@")+'&r='+VERSION
                          // funcs.get_custom_resource_filename('module.js')
                          );
         src.setAttribute('type', 'text/javascript');
         src.onload = function() {
-            Module_mod_wasm_example({
+            Module_@PLUGIN_CLASS@({
                 locateFile: function(path, prefix) {
-                    return '/resources/'+path+'?uri='+escape("urn:distrho:examples:imguisimplegain")+'&r='+VERSION
+                    return '/resources/'+path+'?uri='+escape("@PLUGIN_URI@")+'&r='+VERSION
                     // return funcs.get_custom_resource_filename(path);
                 },
                 postRun: function(module) {
                     // unique class name per instance
-                    window.module = module;
                     var className = event.icon.attr("mod-instance").replaceAll('/','_');
                     var classNameLen = module.lengthBytesUTF8(className) + 1;
                     var classNameAlloc = module._malloc(classNameLen);
