@@ -1070,6 +1070,7 @@ public:
 
             setState(key, filename);
 
+           #if 0 /* TESTING, unwanted in mod-host */
             for (uint32_t i=0, count=fPlugin.getStateCount(); i < count; ++i)
             {
                 if (fPlugin.getStateKey(i) == key)
@@ -1079,6 +1080,7 @@ public:
                     break;
                 }
             }
+           #endif
 
             return LV2_WORKER_SUCCESS;
         }

@@ -1,9 +1,12 @@
 function(event, funcs) {
     'use strict';
 
+    var portsSymbols = [
+        // NOTE fill me!
+    ];
+
     if (event.type === 'start')
     {
-        window.icon = event.icon;
         var wasmErrors = [];
 
         if (typeof(WebAssembly) === "undefined") {
@@ -28,7 +31,10 @@ function(event, funcs) {
             return;
         }
 
-        event.data.pendingChanges = {};
+        event.data.pendingChanges = {
+            patch: {},
+            ports: {},
+        };
 
         var src = document.createElement('script');
         src.setAttribute('async', true);
@@ -38,7 +44,7 @@ function(event, funcs) {
                          );
         src.setAttribute('type', 'text/javascript');
         src.onload = function() {
-            Module_@PLUGIN_CLASS@({
+            Module_wolf_plugins_wolf_shaper({
                 locateFile: function(path, prefix) {
                     return '/resources/'+path+'?uri='+escape("@PLUGIN_URI@")+'&r='+VERSION
                     // return funcs.get_custom_resource_filename(path);
@@ -52,25 +58,45 @@ function(event, funcs) {
                     event.icon.find('canvas')[0].id = className;
 
                     // wasm to JS callbacks
-                    var cb = module.addFunction(function(index, value) {
-                        funcs.set_port_value("gain" /*funcs.get_port_symbol_for_index(index)*/, value);
+                    var cb1 = module.addFunction(function(index, value) {
+                        funcs.set_port_value(portsSymbols[index], value);
                     }, 'vif');
+                    var cb2 = module.addFunction(function(uri, value) {
+                        var jsuri = module.UTF8ToString(uri);
+                        var jsvalue = module.UTF8ToString(value);
+                        funcs.patch_set(jsuri, 's', jsvalue);
+                    }, 'vpp');
 
                     // create handle
-                    var handle = module._modgui_init(classNameAlloc, cb);
+                    var handle = module._modgui_init(classNameAlloc, cb1, cb2);
                     event.data.handle = handle;
                     event.data.module = module;
 
-                    // force a resize
-                    window.dispatchEvent(new Event('resize'));
-
                     // handle parameter changes received while wasm was being loaded
-                    for (var symbol in event.data.pendingChanges) {
-                        event.data.module._modgui_param(event.data.handle,
-                                                        4 /*funcs.get_port_index_for_symbol(event.symbol)*/,
-                                                        event.data.pendingChanges[symbol]);
+                    for (var uri in event.data.pendingChanges.patch) {
+                        var uriLen = module.lengthBytesUTF8(uri) + 1;
+                        var uriAlloc = module._malloc(uriLen);
+                        module.stringToUTF8(uri, uriAlloc, uriLen);
+
+                        var value = event.data.pendingChanges.patch[uri];
+                        var valueLen = module.lengthBytesUTF8(value) + 1;
+                        var valueAlloc = module._malloc(valueLen);
+                        module.stringToUTF8(value, valueAlloc, valueLen);
+
+                        module._modgui_patch_set(handle, uriAlloc, valueAlloc);
+
+                        module._free(uriAlloc);
+                        module._free(valueAlloc);
+                    }
+                    for (var symbol in event.data.pendingChanges.ports) {
+                        module._modgui_param_set(handle,
+                                                 portsSymbols.indexOf(event.symbol),
+                                                 event.data.pendingChanges.ports[symbol]);
                     }
                     event.data.pendingChanges = null;
+
+                    // force a resize
+                    window.dispatchEvent(new Event('resize'));
 
                     // cleanup
                     module._free(classNameAlloc);
@@ -91,16 +117,43 @@ function(event, funcs) {
             });
         };
 
+        event.icon.click(function() {
+            event.icon.find('canvas').focus();
+        });
+
         document.head.appendChild(src);
     }
     else if (event.type === 'change')
     {
-        if (event.data.handle && event.data.module) {
-            event.data.module._modgui_param(event.data.handle,
-                                            4 /*funcs.get_port_index_for_symbol(event.symbol)*/,
-                                            event.value);
-        } else {
-            event.data.pendingChanges[event.symbol] = event.value;
+        if (event.data.handle && event.data.module)
+        {
+            var handle = event.data.handle;
+            var module = event.data.module;
+
+            if (event.uri) {
+                var uriLen = module.lengthBytesUTF8(event.uri) + 1;
+                var uriAlloc = module._malloc(uriLen);
+                module.stringToUTF8(event.uri, uriAlloc, uriLen);
+
+                var valueLen = module.lengthBytesUTF8(event.value) + 1;
+                var valueAlloc = module._malloc(valueLen);
+                module.stringToUTF8(event.value, valueAlloc, valueLen);
+
+                module._modgui_patch_set(handle, uriAlloc, valueAlloc);
+
+                module._free(uriAlloc);
+                module._free(valueAlloc);
+            } else {
+                module._modgui_param_set(handle, portsSymbols.indexOf(event.symbol), event.value);
+            }
+        }
+        else
+        {
+            if (event.uri) {
+                event.data.pendingChanges.patch[event.uri] = event.value;
+            } else {
+                event.data.pendingChanges.ports[event.symbol] = event.value;
+            }
         }
     }
 }

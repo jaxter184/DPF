@@ -1,37 +1,30 @@
 .@PLUGIN_CLASS@.mod-pedal {
     padding: 0;
     margin: 0;
-    width: 540px;
-    height: 240px;
+    width: 500px;
+    height: 200px;
     background: #0e0e0e;
 }
 
 .@PLUGIN_CLASS@.mod-pedal .canvas_wrapper {
-    z-index: 23;
     --device-pixel-ratio: 1;
     /*image-rendering: pixelated;*/
     /*image-rendering: crisp-edges;*/
     transform-origin: 0 0 0;
     transform: scale(calc(1 / var(--device-pixel-ratio)));
+    position: absolute;
     width: 500px;
     height: 200px;
-    position: absolute;
-    top: 20px;
-    left: 20px;
 }
 
-.@PLUGIN_CLASS@.mod-pedal .mod-pedal-input,
-.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output {
-    top: 50px;
+.@PLUGIN_CLASS@.mod-pedal .canvas_wrapper:focus-within {
+    z-index: 21;
 }
 
-.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-audio-input,
-.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-audio-output,
-.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-midi-input,
-.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-midi-output,
-.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-cv-input,
-.@PLUGIN_CLASS@.mod-pedal .mod-pedal-output .mod-cv-output {
-    margin-bottom: 26px;
+.@PLUGIN_CLASS@.mod-pedal .mod-audio-input,
+.@PLUGIN_CLASS@.mod-pedal .mod-audio-output {
+    top: 0px;
+    margin-bottom: 25px;
 }
 
 .@PLUGIN_CLASS@.mod-pedal .jack-disconnected {

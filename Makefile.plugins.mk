@@ -563,8 +563,8 @@ $(TARGET_DIR)/$(NAME).lv2/modgui/module.js: $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMai
 	@echo "Creating LV2 plugin modgui for $(NAME)"
 	$(SILENT)$(CXX) $^ $(LINK_FLAGS) $(EXTRA_LIBS) $(DGL_LIBS) \
 		-sALLOW_TABLE_GROWTH -sMODULARIZE=1 -sMAIN_MODULE=2 -sDISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=0 \
-		-sEXPORTED_FUNCTIONS="['_malloc','_free','_modgui_init','_modgui_param','_modgui_cleanup']" \
-		-sEXPORTED_RUNTIME_METHODS=['addFunction','lengthBytesUTF8','stringToUTF8'] \
+		-sEXPORTED_FUNCTIONS="['_malloc','_free','_modgui_init','_modgui_param_set','_modgui_patch_set','_modgui_cleanup']" \
+		-sEXPORTED_RUNTIME_METHODS=['addFunction','lengthBytesUTF8','stringToUTF8','UTF8ToString'] \
 		-sEXPORT_NAME="Module_$(PLUGIN_CLASS)" \
 		-o $@
 

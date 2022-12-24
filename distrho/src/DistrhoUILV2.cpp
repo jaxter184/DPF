@@ -730,27 +730,38 @@ const LV2UI_Descriptor* lv2ui_descriptor(uint32_t index)
 #include <emscripten/html5.h>
 #include <string>
 
-typedef void (*_custom_port_set)(uint32_t port_index, float value);
+typedef void (*_custom_param_set)(uint32_t port_index, float value);
+typedef void (*_custom_patch_set)(const char* uri, const char* value);
 
-static LV2_URID lv2_urid_map(const LV2_URID_Map_Handle handle, const char* const uri)
+struct ModguiHandle {
+    LV2UI_Handle handle;
+    _custom_param_set param_set;
+    _custom_patch_set patch_set;
+};
+
+enum URIs {
+    kUriNull,
+    kUriAtomEventTransfer,
+    kUriDpfKeyValue,
+};
+
+static std::vector<std::string> kURIs;
+
+static LV2_URID lv2_urid_map(LV2_URID_Map_Handle, const char* const uri)
 {
-    std::vector<std::string>& uris(*static_cast<std::vector<std::string>*>(handle));
-
-    for (size_t i=0, size=uris.size(); i<size; ++i)
+    for (size_t i=0, size=kURIs.size(); i<size; ++i)
     {
-        if (uris[i] == uri)
+        if (kURIs[i] == uri)
             return i;
     }
 
-    uris.push_back(uri);
-    return uris.size() - 1u;
+    kURIs.push_back(uri);
+    return kURIs.size() - 1u;
 }
 
-static const char* lv2_urid_unmap(const LV2_URID_Map_Handle handle, const LV2_URID urid)
+static const char* lv2_urid_unmap(LV2_URID_Map_Handle, const LV2_URID urid)
 {
-    std::vector<std::string>& uris(*static_cast<std::vector<std::string>*>(handle));
-
-    return uris[urid].c_str();
+    return kURIs[urid].c_str();
 }
 
 static void lv2ui_write_function(LV2UI_Controller controller,
@@ -759,12 +770,36 @@ static void lv2ui_write_function(LV2UI_Controller controller,
                                  uint32_t         port_protocol,
                                  const void*      buffer)
 {
-    // d_stdout("lv2ui_write_function %p %u %u", controller, port_index, buffer_size);
-    if (buffer_size != sizeof(float) || port_protocol != 0)
-        return;
+    DISTRHO_SAFE_ASSERT_RETURN(buffer_size >= 1,);
 
-    const _custom_port_set cps = (_custom_port_set)controller;
-    cps(port_index, *static_cast<const float*>(buffer));
+    // d_stdout("lv2ui_write_function %p %u %u %u %p", controller, port_index, buffer_size, port_protocol, buffer);
+    ModguiHandle* const mhandle = static_cast<ModguiHandle*>(controller);
+
+    switch (port_protocol)
+    {
+    case kUriNull:
+        mhandle->param_set(port_index, *static_cast<const float*>(buffer));
+        break;
+    case kUriAtomEventTransfer:
+        if (const LV2_Atom* const atom = static_cast<const LV2_Atom*>(buffer))
+        {
+            // d_stdout("lv2ui_write_function %u %u:%s", atom->size, atom->type, kURIs[atom->type].c_str());
+
+            // if (kURIs[atom->type] == "urn:distrho:KeyValueState")
+            {
+                const char* const key   = (const char*)(atom + 1);
+                const char* const value = key + (std::strlen(key) + 1U);
+                // d_stdout("lv2ui_write_function %s %s", key, value);
+
+                String urikey;
+                urikey  = DISTRHO_PLUGIN_URI "#";
+                urikey += key;
+
+                mhandle->patch_set(urikey, value);
+            }
+        }
+        break;
+    }
 }
 
 static void app_idle(void* const handle)
@@ -773,18 +808,21 @@ static void app_idle(void* const handle)
 }
 
 DISTRHO_PLUGIN_EXPORT
-LV2UI_Handle modgui_init(const char* const className, _custom_port_set port_set)
+LV2UI_Handle modgui_init(const char* const className, _custom_param_set param_set, _custom_patch_set patch_set)
 {
     d_stdout("init \"%s\"", className);
     DISTRHO_SAFE_ASSERT_RETURN(className != nullptr, nullptr);
 
-    static std::vector<std::string> uris;
-    static LV2_URID_Map uridMap = { &uris, lv2_urid_map };
-    static LV2_URID_Unmap uridUnmap = { &uris, lv2_urid_unmap };
+    static LV2_URID_Map uridMap = { nullptr, lv2_urid_map };
+    static LV2_URID_Unmap uridUnmap = { nullptr, lv2_urid_unmap };
 
-    // first URID is null
-    if (uris.empty())
-        uris.push_back("");
+    // known first URIDs, matching URIs
+    if (kURIs.empty())
+    {
+        kURIs.push_back("");
+        kURIs.push_back("http://lv2plug.in/ns/ext/atom#eventTransfer");
+        kURIs.push_back(DISTRHO_PLUGIN_LV2_STATE_PREFIX "KeyValueState");
+    }
 
     static float sampleRateValue = 48000.f;
     static LV2_Options_Option options[3] = {
@@ -818,32 +856,63 @@ LV2UI_Handle modgui_init(const char* const className, _custom_port_set port_set)
         nullptr
     };
 
+    ModguiHandle* const mhandle = new ModguiHandle;
+    mhandle->handle = nullptr;
+    mhandle->param_set = param_set;
+    mhandle->patch_set = patch_set;
+
     LV2UI_Widget widget;
     const LV2UI_Handle handle = lv2ui_instantiate(&sLv2UiDescriptor,
                                                   DISTRHO_PLUGIN_URI,
                                                   "", // bundlePath
                                                   lv2ui_write_function,
-                                                  static_cast<LV2UI_Controller>((void*)port_set),
+                                                  mhandle,
                                                   &widget,
                                                   features);
+    mhandle->handle = handle;
 
     static_cast<UiLv2*>(handle)->lv2ui_show();
     emscripten_set_interval(app_idle, 1000.0/60, handle);
 
-    return handle;
+    return mhandle;
 }
 
 DISTRHO_PLUGIN_EXPORT
-void modgui_param(const LV2UI_Handle handle, const uint32_t index, const float value)
+void modgui_param_set(const LV2UI_Handle handle, const uint32_t index, const float value)
 {
-    lv2ui_port_event(handle, index, sizeof(float), 0, &value);
+    lv2ui_port_event(static_cast<ModguiHandle*>(handle)->handle, index, sizeof(float), kUriNull, &value);
+}
+
+DISTRHO_PLUGIN_EXPORT
+void modgui_patch_set(const LV2UI_Handle handle, const char* const uri, const char* const value)
+{
+    static const constexpr uint32_t URI_PREFIX_LEN = sizeof(DISTRHO_PLUGIN_URI);
+    DISTRHO_SAFE_ASSERT_RETURN(std::strncmp(uri, DISTRHO_PLUGIN_URI "#", URI_PREFIX_LEN) == 0,);
+
+    const uint32_t keySize = std::strlen(uri + URI_PREFIX_LEN) + 1;
+    const uint32_t valueSize = std::strlen(value) + 1;
+    const uint32_t atomSize = sizeof(LV2_Atom) + keySize + valueSize;
+
+    LV2_Atom* const atom = static_cast<LV2_Atom*>(std::malloc(atomSize));
+    atom->size = atomSize;
+    atom->type = kUriDpfKeyValue;
+
+    std::memcpy(static_cast<uint8_t*>(static_cast<void*>(atom + 1)), uri + URI_PREFIX_LEN, keySize);
+    std::memcpy(static_cast<uint8_t*>(static_cast<void*>(atom + 1)) + keySize, value, valueSize);
+
+    lv2ui_port_event(static_cast<ModguiHandle*>(handle)->handle,
+                     DISTRHO_PLUGIN_NUM_INPUTS + DISTRHO_PLUGIN_NUM_OUTPUTS, // events input port
+                     atomSize, kUriAtomEventTransfer, atom);
+
+    std::free(atom);
 }
 
 DISTRHO_PLUGIN_EXPORT
 void modgui_cleanup(const LV2UI_Handle handle)
 {
     d_stdout("cleanup");
-    lv2ui_cleanup(handle);
+    lv2ui_cleanup(static_cast<ModguiHandle*>(handle)->handle);
+    delete static_cast<ModguiHandle*>(handle);
 }
 #endif
 
