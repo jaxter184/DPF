@@ -525,6 +525,25 @@ $(lv2_ui): $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMain_LV2.cpp.o $(DGL_LIB)
 # ---------------------------------------------------------------------------------------------------------------------
 # LV2 modgui
 
+MODGUI_IGNORED_FLAGS  = -fno-gnu-unique
+MODGUI_IGNORED_FLAGS += -mfpmath=sse
+MODGUI_IGNORED_FLAGS += -mtune=generic
+MODGUI_IGNORED_FLAGS += -I$(MOD_WORKDIR)/modduo-static/staging/usr/include
+MODGUI_IGNORED_FLAGS += -I$(MOD_WORKDIR)/modduox-static/staging/usr/include
+MODGUI_IGNORED_FLAGS += -I$(MOD_WORKDIR)/moddwarf/staging/usr/include
+MODGUI_IGNORED_FLAGS += -L$(MOD_WORKDIR)/modduo-static/staging/usr/lib
+MODGUI_IGNORED_FLAGS += -L$(MOD_WORKDIR)/modduox-static/staging/usr/lib
+MODGUI_IGNORED_FLAGS += -L$(MOD_WORKDIR)/moddwarf/staging/usr/lib
+MODGUI_IGNORED_FLAGS += -Wl,-O1,--as-needed,--gc-sections
+MODGUI_IGNORED_FLAGS += -Wl,--no-undefined
+MODGUI_IGNORED_FLAGS += -Wl,--strip-all
+MODGUI_CFLAGS = $(filter-out $(MODGUI_IGNORED_FLAGS),$(BUILD_C_FLAGS)) -D__MOD_DEVICES__
+MODGUI_CXXFLAGS = $(filter-out $(MODGUI_IGNORED_FLAGS),$(BUILD_CXX_FLAGS)) -D__MOD_DEVICES__
+MODGUI_LDFLAGS = $(filter-out $(MODGUI_IGNORED_FLAGS),$(LINK_FLAGS))
+ifneq ($(DEBUG),true)
+MODGUI_LDFLAGS += -Wl,--gc-sections
+endif
+
 JS_SAFE_VAR = $(shell echo $(1) | tr - _)
 
 $(TARGET_DIR)/$(NAME).lv2/modgui/module.js: $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMain_LV2.cpp.o $(DGL_LIB)
@@ -550,14 +569,13 @@ $(TARGET_DIR)/$(NAME).lv2/modgui/stylesheet.css: $(DPF_PATH)/utils/modgui/styles
 	cp $< $@
 
 modgui: $(TARGET_DIR)/$(NAME).lv2/modgui/icon.html $(TARGET_DIR)/$(NAME).lv2/modgui/javascript.js $(TARGET_DIR)/$(NAME).lv2/modgui/stylesheet.css
-	$(MAKE) $(TARGET_DIR)/$(NAME).lv2/modgui/module.js HAVE_OPENGL=true USE_GLES2=true \
+	$(MAKE) $(TARGET_DIR)/$(NAME).lv2/modgui/module.js EXE_WRAPPER= HAVE_OPENGL=true FILE_BROWSER_DISABLED=true PKG_CONFIG=false USE_GLES2=true \
 		AR=emar \
 		CC=emcc \
 		CXX=em++ \
-		CFLAGS="-D__MOD_DEVICES__" \
-		CPPFLAGS= \
-		CXXFLAGS="-D__MOD_DEVICES__ -I../dpf-widgets/generic -I../dpf-widgets/opengl" \
-		LDFLAGS=
+		CFLAGS="$(MODGUI_CFLAGS)" \
+		CXXFLAGS="$(MODGUI_CXXFLAGS)" \
+		LDFLAGS="$(MODGUI_LDFLAGS)"
 
 # ---------------------------------------------------------------------------------------------------------------------
 # VST2
