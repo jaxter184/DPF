@@ -409,6 +409,10 @@ $(BUILD_DIR)/%.mm.o: %.mm
 
 clean:
 	rm -rf $(BUILD_DIR)
+ifeq ($(DPF_BUILD_DIR),)
+	rm -rf $(BASE_PATH)/build-modgui/$(NAME)
+	rm -rf $(DPF_PATH)/build-modgui
+endif
 	rm -rf $(TARGET_DIR)/$(NAME)
 	rm -rf $(TARGET_DIR)/$(NAME)-*
 	rm -rf $(TARGET_DIR)/$(NAME).lv2
