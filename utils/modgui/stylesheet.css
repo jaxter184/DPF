@@ -1,7 +1,7 @@
 .@PLUGIN_CLASS@.mod-pedal {
     padding: 0;
     margin: 0;
-    width: calc(@DISTRHO_UI_DEFAULT_WIDTH@px + 30px);
+    width: @DISTRHO_UI_DEFAULT_WIDTH@px;
     height: calc(@DISTRHO_UI_DEFAULT_HEIGHT@px + 30px);
     background: #0e0e0e;
 }
@@ -16,11 +16,14 @@
     top: 30px;
     width: @DISTRHO_UI_DEFAULT_WIDTH@px;
     height: @DISTRHO_UI_DEFAULT_HEIGHT@px;
+    z-index: 21;
 }
 
+/*
 .@PLUGIN_CLASS@.mod-pedal .canvas_wrapper:focus-within {
     z-index: 21;
 }
+*/
 
 .@PLUGIN_CLASS@.mod-pedal .mod-audio-input,
 .@PLUGIN_CLASS@.mod-pedal .mod-audio-output {

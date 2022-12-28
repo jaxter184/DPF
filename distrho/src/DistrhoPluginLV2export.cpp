@@ -1231,6 +1231,27 @@ void lv2_generate_ttl(const char* const basename)
         modguiString += "        modgui:stylesheet <modgui/stylesheet.css> ;\n";
         modguiString += "        modgui:screenshot <modgui/screenshot.png> ;\n";
         modguiString += "        modgui:thumbnail <modgui/thumbnail.png> ;\n";
+
+        uint32_t numParametersOutputs = 0;
+        for (uint32_t i=0, count=plugin.getParameterCount(); i < count; ++i)
+        {
+            if (plugin.isParameterOutput(i))
+                ++numParametersOutputs;
+        }
+        if (numParametersOutputs != 0)
+        {
+            modguiString += "        modgui:monitoredOutputs [\n";
+            for (uint32_t i=0, j=0, count=plugin.getParameterCount(); i < count; ++i)
+            {
+                if (!plugin.isParameterOutput(i))
+                    continue;
+                modguiString += "            lv2:symbol \"" + plugin.getParameterSymbol(i) + "\" ;\n";
+                if (++j != numParametersOutputs)
+                    modguiString += "        ] , [\n";
+            }
+            modguiString += "        ] ;\n";
+        }
+
         modguiString += "    ] .\n";
 
         modguiFile << modguiString;
