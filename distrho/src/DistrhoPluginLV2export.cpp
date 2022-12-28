@@ -1351,8 +1351,10 @@ void lv2_generate_ttl(const char* const basename)
         jsString += "  m._modgui_patch_set(e.data.h,ua,va);\n";
         jsString += "  m._free(ua);\n";
         jsString += "  m._free(va);\n";
+        jsString += " }else if(e.symbol===':bypass'){return;\n";
         jsString += " }else{m._modgui_param_set(e.data.h,ps.indexOf(e.symbol),e.value);}\n";
         jsString += "}else{\n";
+        jsString += " if(e.symbol===':bypass')return;\n";
         jsString += " if(e.uri){e.data.p.p[e.uri]=e.value;}else{e.data.p.c[e.symbol]=e.value;}\n";
         jsString += "}\n\n";
         jsString += "}\n}\n";
