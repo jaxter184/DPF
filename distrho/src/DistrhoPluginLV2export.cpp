@@ -1367,7 +1367,7 @@ void lv2_generate_ttl(const char* const basename)
 
         iconFile << "<div class='" DISTRHO_PLUGIN_MODGUI_CLASS_NAME " mod-pedal'>" << std::endl;
         iconFile << "    <div mod-role='drag-handle' class='mod-drag-handle'></div>" << std::endl;
-        iconFile << "    <div class='mod-plugin-title'><h1>{{#brand}}{{brand}}{{/brand}}{{label}}</h1></div>" << std::endl;
+        iconFile << "    <div class='mod-plugin-title'><h1>{{#brand}}{{brand}} | {{/brand}}{{label}}</h1></div>" << std::endl;
         iconFile << "    <div class='mod-light on' mod-role='bypass-light'></div>" << std::endl;
         iconFile << "    <div class='mod-control-group mod-switch'>" << std::endl;
         iconFile << "        <div class='mod-control-group mod-switch-image mod-port transport' mod-role='bypass' mod-widget='film'></div>" << std::endl;
