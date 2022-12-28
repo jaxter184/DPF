@@ -584,7 +584,7 @@ MODGUI_IGNORED_FLAGS += -DHAVE_PULSEAUDIO
 MODGUI_IGNORED_FLAGS += -DHAVE_RTAUDIO
 MODGUI_IGNORED_FLAGS += -DNDEBUG
 MODGUI_IGNORED_FLAGS += -DPIC
-MODGUI_IGNORED_FLAGS += -I. 
+MODGUI_IGNORED_FLAGS += -I.
 MODGUI_IGNORED_FLAGS += -I$(DPF_PATH)/distrho
 MODGUI_IGNORED_FLAGS += -I$(DPF_PATH)/dgl
 MODGUI_IGNORED_FLAGS += -I$(MOD_WORKDIR)/modduo-static/staging/usr/include
@@ -623,7 +623,6 @@ $(TARGET_DIR)/$(NAME).lv2/modgui/module.js: $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMai
 		-sEXPORTED_RUNTIME_METHODS=['addFunction','lengthBytesUTF8','stringToUTF8','UTF8ToString'] \
 		-sEXPORT_NAME="Module_$(PLUGIN_CLASS)" \
 		-o $@
-	# touch $(TARGET_DIR)/$(NAME).lv2/modgui/module.wasm
 
 $(TARGET_DIR)/$(NAME).lv2/modgui/module.wasm: $(TARGET_DIR)/$(NAME).lv2/modgui/module.js $(MODGUI_RESOURCES)
 
