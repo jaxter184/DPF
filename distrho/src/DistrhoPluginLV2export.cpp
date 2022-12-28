@@ -1220,6 +1220,7 @@ void lv2_generate_ttl(const char* const basename)
         std::fstream modguiFile("modgui.ttl", std::ios::out);
 
         String modguiString;
+        modguiString += "@prefix lv2:    <" LV2_CORE_PREFIX "> .\n";
         modguiString += "@prefix modgui: <http://moddevices.com/ns/modgui#> .\n";
         modguiString += "\n";
 
