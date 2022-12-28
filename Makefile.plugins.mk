@@ -535,7 +535,7 @@ ifeq ($(MODGUI_BUILD),true)
 ifeq ($(shell echo '\#test' | grep -- '\#test'),\#test)
 PLUGIN_DETAILS = $(shell echo '\#include "DistrhoPluginInfo.h"\n\nDISTRHO_PLUGIN_URI\nDISTRHO_UI_DEFAULT_WIDTH\nDISTRHO_UI_DEFAULT_HEIGHT' | $(CXX) $(filter-out -MD -MP,$(BUILD_CXX_FLAGS)) -E -P -x c++ - 2>/dev/null | tail -n 3)
 else
-PLUGIN_DETAILS = $(shell echo '#include "DistrhoPluginInfo.h"DISTRHO_PLUGIN_URI\nDISTRHO_UI_DEFAULT_WIDTH\nDISTRHO_UI_DEFAULT_HEIGHT' | $(CXX) $(filter-out -MD -MP,$(BUILD_CXX_FLAGS)) -E -P -x c++ - 2>/dev/null | tail -n 3)
+PLUGIN_DETAILS = $(shell echo '#include "DistrhoPluginInfo.h"\n\nDISTRHO_PLUGIN_URI\nDISTRHO_UI_DEFAULT_WIDTH\nDISTRHO_UI_DEFAULT_HEIGHT' | $(CXX) $(filter-out -MD -MP,$(BUILD_CXX_FLAGS)) -E -P -x c++ - 2>/dev/null | tail -n 3)
 endif
 DISTRHO_PLUGIN_URI        = $(word 1,$(PLUGIN_DETAILS))
 DISTRHO_UI_DEFAULT_WIDTH  = $(word 2,$(PLUGIN_DETAILS))
