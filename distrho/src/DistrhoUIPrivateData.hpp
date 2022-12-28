@@ -108,6 +108,7 @@ public:
     explicit PluginApplication(const char* className)
         : DGL_NAMESPACE::Application(DISTRHO_UI_IS_STANDALONE)
     {
+       #if defined(__MOD_DEVICES__) || !defined(__EMSCRIPTEN__)
         if (className == nullptr)
         {
             className = (
@@ -120,6 +121,10 @@ public:
             );
         }
         setClassName(className);
+       #else
+        // unused
+        (void)className;
+       #endif
     }
 
     void triggerIdleCallbacks()
