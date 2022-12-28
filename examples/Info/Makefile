@@ -18,6 +18,8 @@ FILES_DSP = \
 FILES_UI = \
 	InfoExampleUI.cpp
 
+PLUGIN_CLASS = distrho_examples_info
+
 # --------------------------------------------------------------
 # Do some magic
 

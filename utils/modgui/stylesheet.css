@@ -1,8 +1,8 @@
 .@PLUGIN_CLASS@.mod-pedal {
     padding: 0;
     margin: 0;
-    width: 500px;
-    height: 200px;
+    width: calc(@DISTRHO_UI_DEFAULT_WIDTH@px + 30px);
+    height: calc(@DISTRHO_UI_DEFAULT_HEIGHT@px + 30px);
     background: #0e0e0e;
 }
 
@@ -13,8 +13,9 @@
     transform-origin: 0 0 0;
     transform: scale(calc(1 / var(--device-pixel-ratio)));
     position: absolute;
-    width: 500px;
-    height: 200px;
+    top: 30px;
+    width: @DISTRHO_UI_DEFAULT_WIDTH@px;
+    height: @DISTRHO_UI_DEFAULT_HEIGHT@px;
 }
 
 .@PLUGIN_CLASS@.mod-pedal .canvas_wrapper:focus-within {

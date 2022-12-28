@@ -6,7 +6,6 @@
 
 # NOTE: NAME, FILES_DSP and FILES_UI must have been defined before including this file!
 
-
 ifeq ($(DPF_PATH),)
 ifneq (,$(wildcard dpf/Makefile.base.mk))
 BASE_PATH=.
@@ -33,10 +32,17 @@ TARGET_DIR = $(BASE_PATH)/bin
 else
 TARGET_DIR = $(DPF_TARGET_DIR)
 endif
+
+ifeq ($(MODGUI_BUILD),true)
+BUILD_DIR_SUFFIX = -modgui
+endif
+
 ifeq ($(DPF_BUILD_DIR),)
-BUILD_DIR = $(BASE_PATH)/build/$(NAME)
+BUILD_DIR     = $(BASE_PATH)/build$(BUILD_DIR_SUFFIX)/$(NAME)
+DGL_BUILD_DIR = $(BASE_PATH)/build$(BUILD_DIR_SUFFIX)
 else
-BUILD_DIR = $(DPF_BUILD_DIR)
+BUILD_DIR     = $(DPF_BUILD_DIR)
+DGL_BUILD_DIR = $(DPF_BUILD_DIR)
 endif
 
 BUILD_C_FLAGS   += -I.
@@ -155,7 +161,7 @@ ifeq ($(HAVE_CAIRO),true)
 DGL_FLAGS += -DDGL_CAIRO -DHAVE_DGL
 DGL_FLAGS += $(CAIRO_FLAGS)
 DGL_LIBS  += $(CAIRO_LIBS)
-DGL_LIB    = $(DPF_PATH)/build/libdgl-cairo.a
+DGL_LIB    = $(DGL_BUILD_DIR)/libdgl-cairo.a
 HAVE_DGL   = true
 else
 HAVE_DGL   = false
@@ -167,7 +173,7 @@ ifeq ($(HAVE_OPENGL),true)
 DGL_FLAGS += -DDGL_OPENGL -DHAVE_DGL
 DGL_FLAGS += $(OPENGL_FLAGS)
 DGL_LIBS  += $(OPENGL_LIBS)
-DGL_LIB    = $(DPF_PATH)/build/libdgl-opengl.a
+DGL_LIB    = $(DGL_BUILD_DIR)/libdgl-opengl.a
 HAVE_DGL   = true
 else
 HAVE_DGL   = false
@@ -179,7 +185,7 @@ ifeq ($(HAVE_OPENGL),true)
 DGL_FLAGS += -DDGL_OPENGL -DDGL_USE_OPENGL3 -DHAVE_DGL
 DGL_FLAGS += $(OPENGL_FLAGS)
 DGL_LIBS  += $(OPENGL_LIBS)
-DGL_LIB    = $(DPF_PATH)/build/libdgl-opengl3.a
+DGL_LIB    = $(DGL_BUILD_DIR)/libdgl-opengl3.a
 HAVE_DGL   = true
 else
 HAVE_DGL   = false
@@ -191,7 +197,7 @@ ifeq ($(HAVE_VULKAN),true)
 DGL_FLAGS += -DDGL_VULKAN -DHAVE_DGL
 DGL_FLAGS += $(VULKAN_FLAGS)
 DGL_LIBS  += $(VULKAN_LIBS)
-DGL_LIB    = $(DPF_PATH)/build/libdgl-vulkan.a
+DGL_LIB    = $(DGL_BUILD_DIR)/libdgl-vulkan.a
 HAVE_DGL   = true
 else
 HAVE_DGL   = false
@@ -205,7 +211,7 @@ endif
 
 ifeq ($(UI_TYPE),stub)
 ifeq ($(HAVE_STUB),true)
-DGL_LIB    = $(DPF_PATH)/build/libdgl-stub.a
+DGL_LIB    = $(DGL_BUILD_DIR)/libdgl-stub.a
 HAVE_DGL   = true
 else
 HAVE_DGL   = false
@@ -372,32 +378,32 @@ all:
 # Common
 
 $(BUILD_DIR)/%.S.o: %.S
-	-@mkdir -p "$(shell dirname $(BUILD_DIR)/$<)"
+	-@mkdir -p "$(shell dirname $@)"
 	@echo "Compiling $<"
 	@$(CC) $< $(BUILD_C_FLAGS) -c -o $@
 
 $(BUILD_DIR)/%.c.o: %.c
-	-@mkdir -p "$(shell dirname $(BUILD_DIR)/$<)"
+	-@mkdir -p "$(shell dirname $@)"
 	@echo "Compiling $<"
 	$(SILENT)$(CC) $< $(BUILD_C_FLAGS) -c -o $@
 
 $(BUILD_DIR)/%.cc.o: %.cc
-	-@mkdir -p "$(shell dirname $(BUILD_DIR)/$<)"
+	-@mkdir -p "$(shell dirname $@)"
 	@echo "Compiling $<"
 	$(SILENT)$(CXX) $< $(BUILD_CXX_FLAGS) -c -o $@
 
 $(BUILD_DIR)/%.cpp.o: %.cpp
-	-@mkdir -p "$(shell dirname $(BUILD_DIR)/$<)"
+	-@mkdir -p "$(shell dirname $@)"
 	@echo "Compiling $<"
 	$(SILENT)$(CXX) $< $(BUILD_CXX_FLAGS) -c -o $@
 
 $(BUILD_DIR)/%.m.o: %.m
-	-@mkdir -p "$(shell dirname $(BUILD_DIR)/$<)"
+	-@mkdir -p "$(shell dirname $@)"
 	@echo "Compiling $<"
 	$(SILENT)$(CC) $< $(BUILD_C_FLAGS) -ObjC -c -o $@
 
 $(BUILD_DIR)/%.mm.o: %.mm
-	-@mkdir -p "$(shell dirname $(BUILD_DIR)/$<)"
+	-@mkdir -p "$(shell dirname $@)"
 	@echo "Compiling $<"
 	$(SILENT)$(CC) $< $(BUILD_CXX_FLAGS) -ObjC++ -c -o $@
 
@@ -413,19 +419,19 @@ clean:
 # ---------------------------------------------------------------------------------------------------------------------
 # DGL
 
-$(DPF_PATH)/build/libdgl-cairo.a:
+$(DGL_BUILD_DIR)/libdgl-cairo.a:
 	$(MAKE) -C $(DPF_PATH)/dgl cairo
 
-$(DPF_PATH)/build/libdgl-opengl.a:
+$(DGL_BUILD_DIR)/libdgl-opengl.a:
 	$(MAKE) -C $(DPF_PATH)/dgl opengl
 
-$(DPF_PATH)/build/libdgl-opengl3.a:
+$(DGL_BUILD_DIR)/libdgl-opengl3.a:
 	$(MAKE) -C $(DPF_PATH)/dgl opengl3
 
-$(DPF_PATH)/build/libdgl-stub.a:
+$(DGL_BUILD_DIR)/libdgl-stub.a:
 	$(MAKE) -C $(DPF_PATH)/dgl stub
 
-$(DPF_PATH)/build/libdgl-vulkan.a:
+$(DGL_BUILD_DIR)/libdgl-vulkan.a:
 	$(MAKE) -C $(DPF_PATH)/dgl vulkan
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -526,33 +532,79 @@ $(lv2_ui): $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMain_LV2.cpp.o $(DGL_LIB)
 # LV2 modgui
 
 ifeq ($(MODGUI_BUILD),true)
+ifeq ($(shell echo '\#test' | grep -- '\#test'),\#test)
+PLUGIN_DETAILS = $(shell echo '\#include "DistrhoPluginInfo.h"\n\nDISTRHO_PLUGIN_URI\nDISTRHO_UI_DEFAULT_WIDTH\nDISTRHO_UI_DEFAULT_HEIGHT' | $(CXX) $(filter-out -MD -MP,$(BUILD_CXX_FLAGS)) -E -P -x c++ - 2>/dev/null | tail -n 3)
+else
+PLUGIN_DETAILS = $(shell echo '#include "DistrhoPluginInfo.h"DISTRHO_PLUGIN_URI\nDISTRHO_UI_DEFAULT_WIDTH\nDISTRHO_UI_DEFAULT_HEIGHT' | $(CXX) $(filter-out -MD -MP,$(BUILD_CXX_FLAGS)) -E -P -x c++ - 2>/dev/null | tail -n 3)
+endif
+DISTRHO_PLUGIN_URI        = $(word 1,$(PLUGIN_DETAILS))
+DISTRHO_UI_DEFAULT_WIDTH  = $(word 2,$(PLUGIN_DETAILS))
+DISTRHO_UI_DEFAULT_HEIGHT = $(word 3,$(PLUGIN_DETAILS))
 ifeq ($(PLUGIN_CLASS),)
 $(error PLUGIN_CLASS undefined)
 endif
-ifeq ($(PLUGIN_URI),)
-$(error PLUGIN_URI undefined)
+ifeq ($(DISTRHO_PLUGIN_URI),)
+$(error DISTRHO_PLUGIN_URI undefined)
+endif
+ifeq ($(DISTRHO_UI_DEFAULT_WIDTH),)
+$(error DISTRHO_UI_DEFAULT_WIDTH undefined)
+endif
+ifeq ($(DISTRHO_UI_DEFAULT_HEIGHT),)
+$(error DISTRHO_UI_DEFAULT_HEIGHT undefined)
 endif
 endif
 
-MODGUI_IGNORED_FLAGS  = -fno-gnu-unique
+MODGUI_IGNORED_FLAGS  = -fdata-sections
+MODGUI_IGNORED_FLAGS += -ffast-math
+MODGUI_IGNORED_FLAGS += -ffunction-sections
+MODGUI_IGNORED_FLAGS += -fno-gnu-unique
 MODGUI_IGNORED_FLAGS += -fprefetch-loop-arrays
+MODGUI_IGNORED_FLAGS += -fvisibility=hidden
+MODGUI_IGNORED_FLAGS += -fvisibility-inlines-hidden
+MODGUI_IGNORED_FLAGS += -fPIC
 MODGUI_IGNORED_FLAGS += -mfpmath=sse
+MODGUI_IGNORED_FLAGS += -msse
+MODGUI_IGNORED_FLAGS += -msse2
 MODGUI_IGNORED_FLAGS += -mtune=generic
+MODGUI_IGNORED_FLAGS += -pipe
+MODGUI_IGNORED_FLAGS += -std=gnu99
+MODGUI_IGNORED_FLAGS += -std=gnu++11
+MODGUI_IGNORED_FLAGS += -DDGL_OPENGL
+MODGUI_IGNORED_FLAGS += -DGL_SILENCE_DEPRECATION=1
+MODGUI_IGNORED_FLAGS += -DHAVE_ALSA
+MODGUI_IGNORED_FLAGS += -DHAVE_DGL
+MODGUI_IGNORED_FLAGS += -DHAVE_JACK
+MODGUI_IGNORED_FLAGS += -DHAVE_LIBLO
+MODGUI_IGNORED_FLAGS += -DHAVE_OPENGL
+MODGUI_IGNORED_FLAGS += -DHAVE_PULSEAUDIO
+MODGUI_IGNORED_FLAGS += -DHAVE_RTAUDIO
+MODGUI_IGNORED_FLAGS += -DNDEBUG
+MODGUI_IGNORED_FLAGS += -DPIC
+MODGUI_IGNORED_FLAGS += -I. 
+MODGUI_IGNORED_FLAGS += -I$(DPF_PATH)/distrho
+MODGUI_IGNORED_FLAGS += -I$(DPF_PATH)/dgl
 MODGUI_IGNORED_FLAGS += -I$(MOD_WORKDIR)/modduo-static/staging/usr/include
 MODGUI_IGNORED_FLAGS += -I$(MOD_WORKDIR)/modduox-static/staging/usr/include
 MODGUI_IGNORED_FLAGS += -I$(MOD_WORKDIR)/moddwarf/staging/usr/include
 MODGUI_IGNORED_FLAGS += -L$(MOD_WORKDIR)/modduo-static/staging/usr/lib
 MODGUI_IGNORED_FLAGS += -L$(MOD_WORKDIR)/modduox-static/staging/usr/lib
 MODGUI_IGNORED_FLAGS += -L$(MOD_WORKDIR)/moddwarf/staging/usr/lib
+MODGUI_IGNORED_FLAGS += -MD
+MODGUI_IGNORED_FLAGS += -MP
+MODGUI_IGNORED_FLAGS += -O2
+MODGUI_IGNORED_FLAGS += -O3
+MODGUI_IGNORED_FLAGS += -Wall
+MODGUI_IGNORED_FLAGS += -Wextra
 MODGUI_IGNORED_FLAGS += -Wl,-O1,--as-needed,--gc-sections
+MODGUI_IGNORED_FLAGS += -Wl,-dead_strip,-dead_strip_dylibs
+MODGUI_IGNORED_FLAGS += -Wl,-x
+MODGUI_IGNORED_FLAGS += -Wl,--gc-sections
 MODGUI_IGNORED_FLAGS += -Wl,--no-undefined
 MODGUI_IGNORED_FLAGS += -Wl,--strip-all
+MODGUI_IGNORED_FLAGS += -Wno-deprecated-declarations
 MODGUI_CFLAGS = $(filter-out $(MODGUI_IGNORED_FLAGS),$(BUILD_C_FLAGS)) -D__MOD_DEVICES__
 MODGUI_CXXFLAGS = $(filter-out $(MODGUI_IGNORED_FLAGS),$(BUILD_CXX_FLAGS)) -D__MOD_DEVICES__
 MODGUI_LDFLAGS = $(filter-out $(MODGUI_IGNORED_FLAGS),$(LINK_FLAGS))
-ifneq ($(DEBUG),true)
-MODGUI_LDFLAGS += -Wl,--gc-sections
-endif
 
 MODGUI_RESOURCES  = $(TARGET_DIR)/$(NAME).lv2/modgui/icon.html
 MODGUI_RESOURCES += $(TARGET_DIR)/$(NAME).lv2/modgui/javascript.js
@@ -567,13 +619,28 @@ $(TARGET_DIR)/$(NAME).lv2/modgui/module.js: $(OBJS_UI) $(BUILD_DIR)/DistrhoUIMai
 		-sEXPORTED_RUNTIME_METHODS=['addFunction','lengthBytesUTF8','stringToUTF8','UTF8ToString'] \
 		-sEXPORT_NAME="Module_$(PLUGIN_CLASS)" \
 		-o $@
+	# touch $(TARGET_DIR)/$(NAME).lv2/modgui/module.wasm
+
+$(TARGET_DIR)/$(NAME).lv2/modgui/module.wasm: $(TARGET_DIR)/$(NAME).lv2/modgui/module.js $(MODGUI_RESOURCES)
 
 $(TARGET_DIR)/$(NAME).lv2/modgui/%: $(DPF_PATH)/utils/modgui/%
 	-@mkdir -p $(shell dirname $@)
-	sed -e 's|@PLUGIN_CLASS@|$(PLUGIN_CLASS)|g' -e 's|@PLUGIN_URI@|$(PLUGIN_URI)|g' $< > $@
+	sed \
+		-e 's|@DISTRHO_PLUGIN_URI@|$(DISTRHO_PLUGIN_URI)|g' \
+		-e 's|@DISTRHO_UI_DEFAULT_WIDTH@|$(DISTRHO_UI_DEFAULT_WIDTH)|g' \
+		-e 's|@DISTRHO_UI_DEFAULT_HEIGHT@|$(DISTRHO_UI_DEFAULT_HEIGHT)|g' \
+		-e 's|@PLUGIN_CLASS@|$(PLUGIN_CLASS)|g' \
+		$< > $@
 
-modgui: $(MODGUI_RESOURCES)
-	$(MAKE) $(TARGET_DIR)/$(NAME).lv2/modgui/module.js EXE_WRAPPER= HAVE_OPENGL=true FILE_BROWSER_DISABLED=true MODGUI_BUILD=true PKG_CONFIG=false USE_GLES2=true \
+modgui:
+	$(MAKE) $(TARGET_DIR)/$(NAME).lv2/modgui/module.js $(TARGET_DIR)/$(NAME).lv2/modgui/module.wasm \
+		EXE_WRAPPER= \
+		FILE_BROWSER_DISABLED=true \
+		HAVE_OPENGL=true \
+		MODGUI_BUILD=true \
+		NOOPT=true \
+		PKG_CONFIG=false \
+		USE_GLES2=true \
 		PLUGIN_CLASS=$(PLUGIN_CLASS) \
 		AR=emar \
 		CC=emcc \
@@ -581,6 +648,8 @@ modgui: $(MODGUI_RESOURCES)
 		CFLAGS="$(MODGUI_CFLAGS)" \
 		CXXFLAGS="$(MODGUI_CXXFLAGS)" \
 		LDFLAGS="$(MODGUI_LDFLAGS)"
+
+.PHONY: modgui
 
 # ---------------------------------------------------------------------------------------------------------------------
 # VST2
