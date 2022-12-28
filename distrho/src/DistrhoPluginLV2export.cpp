@@ -944,11 +944,11 @@ void lv2_generate_ttl(const char* const basename)
             }
         }
 
-#ifdef DISTRHO_PLUGIN_BRAND
+       #ifdef DISTRHO_PLUGIN_BRAND
         // MOD
         pluginString += "    mod:brand \"" DISTRHO_PLUGIN_BRAND "\" ;\n";
         pluginString += "    mod:label \"" DISTRHO_PLUGIN_NAME "\" ;\n\n";
-#endif
+       #endif
 
         // name
         {
@@ -1226,6 +1226,10 @@ void lv2_generate_ttl(const char* const basename)
 
         modguiString += "<" DISTRHO_PLUGIN_URI ">\n";
         modguiString += "    modgui:gui [\n";
+       #ifdef DISTRHO_PLUGIN_BRAND
+        modguiString += "        modgui:brand \"" DISTRHO_PLUGIN_BRAND "\" ;\n";
+       #endif
+        modguiString += "        modgui:label \"" DISTRHO_PLUGIN_NAME "\" ;\n";
         modguiString += "        modgui:resourcesDirectory <modgui> ;\n";
         modguiString += "        modgui:iconTemplate <modgui/icon.html> ;\n";
         modguiString += "        modgui:javascript <modgui/javascript.js> ;\n";
@@ -1363,6 +1367,11 @@ void lv2_generate_ttl(const char* const basename)
 
         iconFile << "<div class='" DISTRHO_PLUGIN_MODGUI_CLASS_NAME " mod-pedal'>" << std::endl;
         iconFile << "    <div mod-role='drag-handle' class='mod-drag-handle'></div>" << std::endl;
+        iconFile << "    <div class='mod-plugin-title'><h1>{{#brand}}{{brand}}{{/brand}}{{label}}</h1></div>" << std::endl;
+        iconFile << "    <div class='mod-light on' mod-role='bypass-light'></div>" << std::endl;
+        iconFile << "    <div class='mod-control-group mod-switch'>" << std::endl;
+        iconFile << "        <div class='mod-control-group mod-switch-image mod-port transport' mod-role='bypass' mod-widget='film'></div>" << std::endl;
+        iconFile << "    </div>" << std::endl;
         iconFile << "    <div class='canvas_wrapper'>" << std::endl;
         iconFile << "        <canvas oncontextmenu='event.preventDefault()' tabindex=-1></canvas>" << std::endl;
         iconFile << "    </div>" << std::endl;
@@ -1401,6 +1410,7 @@ void lv2_generate_ttl(const char* const basename)
         iconFile << "        {{/effect.ports.cv.output}}" << std::endl;
         iconFile << "    </div>" << std::endl;
         iconFile << "</div>" << std::endl;
+
         iconFile.close();
         std::cout << " done!" << std::endl;
     }
@@ -1413,17 +1423,20 @@ void lv2_generate_ttl(const char* const basename)
         stylesheetFile << " padding:0;" << std::endl;
         stylesheetFile << " margin:0;" << std::endl;
         stylesheetFile << " width:" + String(DISTRHO_UI_DEFAULT_WIDTH) + "px;" << std::endl;
-        stylesheetFile << " height:" + String(DISTRHO_UI_DEFAULT_HEIGHT + 30) + "px;" << std::endl;
-        stylesheetFile << " background:#0e0e0e;" << std::endl;
+        stylesheetFile << " height:" + String(DISTRHO_UI_DEFAULT_HEIGHT + 50) + "px;" << std::endl;
+        stylesheetFile << " background:#2a2e32;" << std::endl;
+        stylesheetFile << " border-radius:20px 20px 0 0;" << std::endl;
+        stylesheetFile << " color:#fff;" << std::endl;
         stylesheetFile << "}" << std::endl;
         stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .canvas_wrapper{" << std::endl;
         stylesheetFile << " --device-pixel-ratio:1;" << std::endl;
         stylesheetFile << " /*image-rendering:pixelated;*/" << std::endl;
         stylesheetFile << " /*image-rendering:crisp-edges;*/" << std::endl;
+        stylesheetFile << " background:#000;" << std::endl;
+        stylesheetFile << " position:absolute;" << std::endl;
+        stylesheetFile << " top:50px;" << std::endl;
         stylesheetFile << " transform-origin:0 0 0;" << std::endl;
         stylesheetFile << " transform:scale(calc(1/var(--device-pixel-ratio)));" << std::endl;
-        stylesheetFile << " position:absolute;" << std::endl;
-        stylesheetFile << " top:30px;" << std::endl;
         stylesheetFile << " width:" + String(DISTRHO_UI_DEFAULT_WIDTH) + "px;" << std::endl;
         stylesheetFile << " height:" + String(DISTRHO_UI_DEFAULT_HEIGHT) + "px;" << std::endl;
         stylesheetFile << " z-index:21;" << std::endl;
@@ -1433,9 +1446,25 @@ void lv2_generate_ttl(const char* const basename)
         stylesheetFile << " z-index:21;" << std::endl;
         stylesheetFile << "}" << std::endl;
         stylesheetFile << "*/" << std::endl;
+        stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-plugin-title{" << std::endl;
+        stylesheetFile << " position:absolute;" << std::endl;
+        stylesheetFile << " text-align:center;" << std::endl;
+        stylesheetFile << " width:100%;" << std::endl;
+        stylesheetFile << "}" << std::endl;
+        stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal h1{" << std::endl;
+        stylesheetFile << " font-size:20px;" << std::endl;
+        stylesheetFile << " font-weight:bold;" << std::endl;
+        stylesheetFile << " line-height:50px;" << std::endl;
+        stylesheetFile << " margin:0;" << std::endl;
+        stylesheetFile << "}" << std::endl;
+        stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-control-group{" << std::endl;
+        stylesheetFile << " position:absolute;" << std::endl;
+        stylesheetFile << " left:5px;" << std::endl;
+        stylesheetFile << " z-index:35;" << std::endl;
+        stylesheetFile << "}" << std::endl;
         stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-pedal-input," << std::endl;
         stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-pedal-output{" << std::endl;
-        stylesheetFile << " top:50px;" << std::endl;
+        stylesheetFile << " top:75px;" << std::endl;
         stylesheetFile << "}" << std::endl;
         stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-audio-input," << std::endl;
         stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-audio-output{" << std::endl;
@@ -1444,6 +1473,23 @@ void lv2_generate_ttl(const char* const basename)
         stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .jack-disconnected{" << std::endl;
         stylesheetFile << " top:0px!important;" << std::endl;
         stylesheetFile << "}" << std::endl;
+        stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-switch-image{" << std::endl;
+        stylesheetFile << " background-image: url(/img/switch.png);" << std::endl;
+        stylesheetFile << " background-position: left center;" << std::endl;
+        stylesheetFile << " background-repeat: no-repeat;" << std::endl;
+        stylesheetFile << " background-size: auto 50px;" << std::endl;
+        stylesheetFile << " font-weight: bold;" << std::endl;
+        stylesheetFile << " width: 100px;" << std::endl;
+        stylesheetFile << " height: 50px;" << std::endl;
+        stylesheetFile << " cursor: pointer;" << std::endl;
+        stylesheetFile << "}" << std::endl;
+        stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-switch-image.off{" << std::endl;
+        stylesheetFile << " background-position: right center !important;" << std::endl;
+        stylesheetFile << "}" << std::endl;
+        stylesheetFile << "." DISTRHO_PLUGIN_MODGUI_CLASS_NAME ".mod-pedal .mod-switch-image.on{" << std::endl;
+        stylesheetFile << " background-position: left center !important;" << std::endl;
+        stylesheetFile << "}" << std::endl;
+
         stylesheetFile.close();
         std::cout << " done!" << std::endl;
     }
