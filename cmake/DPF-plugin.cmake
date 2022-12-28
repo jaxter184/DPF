@@ -77,9 +77,6 @@ include(CMakeParseArguments)
 #   `UI_TYPE` <type>
 #       the user interface type: `opengl` (default), `cairo`, `external`
 #
-#   `MONOLITHIC`
-#       build LV2 as a single binary for UI and DSP
-#
 #   `FILES_DSP` <file1>...<fileN>
 #       list of sources which are part of the DSP
 #
@@ -90,10 +87,19 @@ include(CMakeParseArguments)
 #   `FILES_COMMON` <file1>...<fileN>
 #       list of sources which are part of both DSP and UI
 #
+#   `MODGUI_CLASS_NAME`
+#       class name to use for modgui builds
+#
+#   `MONOLITHIC`
+#       build LV2 as a single binary for UI and DSP
+#
+#   `NO_SHARED_RESOURCES`
+#       do not build DPF shared resources (fonts, etc)
+#
 function(dpf_add_plugin NAME)
   set(options MONOLITHIC NO_SHARED_RESOURCES)
-  set(oneValueArgs UI_TYPE)
-  set(multiValueArgs TARGETS FILES_DSP FILES_UI FILES_COMMON)
+  set(oneValueArgs MODGUI_CLASS_NAME UI_TYPE)
+  set(multiValueArgs FILES_COMMON FILES_DSP FILES_UI TARGETS)
   cmake_parse_arguments(_dpf_plugin "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
   if("${_dpf_plugin_UI_TYPE}" STREQUAL "")
@@ -130,6 +136,10 @@ function(dpf_add_plugin NAME)
   dpf__add_static_library("${NAME}" ${_dpf_plugin_FILES_COMMON})
   target_include_directories("${NAME}" PUBLIC
     "${DPF_ROOT_DIR}/distrho")
+
+  if(_dpf_plugin_MODGUI_CLASS_NAME)
+    target_compile_definitions("${NAME}" PUBLIC "DISTRHO_PLUGIN_MODGUI_CLASS_NAME=\"${_dpf_plugin_MODGUI_CLASS_NAME}\"")
+  endif()
 
   if((NOT WIN32) AND (NOT APPLE) AND (NOT HAIKU))
     target_link_libraries("${NAME}" PRIVATE "dl")

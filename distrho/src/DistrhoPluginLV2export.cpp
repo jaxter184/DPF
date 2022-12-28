@@ -42,7 +42,11 @@
 # include "mod-license.h"
 #endif
 
-#ifndef DISTRHO_OS_WINDOWS
+#ifdef DISTRHO_OS_WINDOWS
+# include <direct.h>
+#else
+# include <sys/stat.h>
+# include <sys/types.h>
 # include <unistd.h>
 #endif
 
@@ -1263,6 +1267,12 @@ void lv2_generate_ttl(const char* const basename)
         modguiFile.close();
         std::cout << " done!" << std::endl;
     }
+
+   #ifdef DISTRHO_OS_WINDOWS
+    ::_mkdir("modgui");
+   #else
+    ::mkdir("modgui", 0755);
+   #endif
 
     {
         std::cout << "Writing modgui/javascript.js..."; std::cout.flush();
